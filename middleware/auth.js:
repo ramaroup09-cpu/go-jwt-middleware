@@ -1,0 +1,28 @@
+const jwt = require('jsonwebtoken');
+
+function authMiddleware(typeRequired) {
+    return (req, res, next) => {
+        const token = req.headers['authorization'];
+        if (!token) return res.status(401).json({ success: false, message: 'No token provided' });
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) return res.status(401).json({ success: false, message: 'Failed to authenticate token' });
+            
+            // Check user type
+            if(typeRequired && decoded.type !== typeRequired)
+                return res.status(403).json({ success: false, message: 'Unauthorized type' });
+
+            req.userId = decoded.id;
+            req.userType = decoded.type;
+            next();
+        });
+    }
+}
+
+module.exports = authMiddleware;
+
+  
+
+
+
+
